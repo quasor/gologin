@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/dghubble/ctxh"
+	"goji.io"
 	"github.com/dghubble/go-digits/digits"
-	"github.com/dghubble/gologin/testutils"
+	"github.com/quasor/gologin/testutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -144,7 +144,7 @@ func TestWebHandler(t *testing.T) {
 		assert.Equal(t, testAccountEndpoint, endpoint)
 		assert.Equal(t, testAccountRequestHeader, header)
 	}
-	handler := LoginHandler(config, ctxh.ContextHandlerFunc(success), testutils.AssertFailureNotCalled(t))
+	handler := LoginHandler(config, goji.HandlerFunc(success), testutils.AssertFailureNotCalled(t))
 	ts := httptest.NewServer(ctxh.NewHandler(handler))
 	// POST OAuth Echo to server under test
 	resp, err := http.PostForm(ts.URL, url.Values{accountEndpointField: {testAccountEndpoint}, accountRequestHeaderField: {testAccountRequestHeader}})
@@ -208,7 +208,7 @@ func TestWebHandler_InvalidFields(t *testing.T) {
 	testutils.AssertBodyString(t, resp.Body, ErrUnableToGetDigitsAccount.Error()+"\n")
 }
 
-func checkSuccess(t *testing.T) ctxh.ContextHandler {
+func checkSuccess(t *testing.T) goji.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 		account, err := AccountFromContext(ctx)
 		assert.Nil(t, err)
@@ -221,5 +221,5 @@ func checkSuccess(t *testing.T) ctxh.ContextHandler {
 		assert.Equal(t, testAccountEndpoint, endpoint)
 		assert.Equal(t, testAccountRequestHeader, header)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }

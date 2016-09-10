@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
+	"github.com/quasor/gologin/testutils"
 	"github.com/google/go-github/github"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -40,7 +40,7 @@ func TestGithubHandler(t *testing.T) {
 	// - github User is obtained from the Github API
 	// - success handler is called
 	// - github User is added to the ctx of the success handler
-	githubHandler := githubHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	githubHandler := githubHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	githubHandler.ServeHTTP(ctx, w, req)
@@ -61,7 +61,7 @@ func TestGithubHandler_MissingCtxToken(t *testing.T) {
 	// GithubHandler called without Token in ctx, assert that:
 	// - failure handler is called
 	// - error about ctx missing token is added to the failure handler ctx
-	githubHandler := githubHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	githubHandler := githubHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	githubHandler.ServeHTTP(context.Background(), w, req)
@@ -89,7 +89,7 @@ func TestGithubHandler_ErrorGettingUser(t *testing.T) {
 	// GithubHandler cannot get Github User, assert that:
 	// - failure handler is called
 	// - error cannot get Github User added to the failure handler ctx
-	githubHandler := githubHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	githubHandler := githubHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	githubHandler.ServeHTTP(ctx, w, req)

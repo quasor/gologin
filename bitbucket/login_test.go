@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
+	"github.com/quasor/gologin/testutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -39,7 +39,7 @@ func TestBitbucketHandler(t *testing.T) {
 	// - bitbucket User is obtained from the Bitbucket API
 	// - success handler is called
 	// - bitbucket User is added to the ctx of the success handler
-	bitbucketHandler := bitbucketHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	bitbucketHandler := bitbucketHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	bitbucketHandler.ServeHTTP(ctx, w, req)
@@ -60,7 +60,7 @@ func TestBitbucketHandler_MissingCtxToken(t *testing.T) {
 	// BitbucketHandler called without Token in ctx, assert that:
 	// - failure handler is called
 	// - error about ctx missing token is added to the failure handler ctx
-	bitbucketHandler := bitbucketHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	bitbucketHandler := bitbucketHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	bitbucketHandler.ServeHTTP(context.Background(), w, req)
@@ -88,7 +88,7 @@ func TestBitbucketHandler_ErrorGettingUser(t *testing.T) {
 	// BitbucketHandler cannot get Bitbucket User, assert that:
 	// - failure handler is called
 	// - error cannot get Bitbucket User added to the failure handler ctx
-	bitbucketHandler := bitbucketHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	bitbucketHandler := bitbucketHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	bitbucketHandler.ServeHTTP(ctx, w, req)

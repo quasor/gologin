@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
+	"github.com/quasor/gologin/testutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -42,7 +42,7 @@ func TestGoogleHandler(t *testing.T) {
 	// - google Userinfoplus is obtained from the Google API
 	// - success handler is called
 	// - google Userinfoplus is added to the ctx of the success handler
-	googleHandler := googleHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	googleHandler := googleHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	googleHandler.ServeHTTP(ctx, w, req)
@@ -63,7 +63,7 @@ func TestGoogleHandler_MissingCtxToken(t *testing.T) {
 	// GoogleHandler called without Token in ctx, assert that:
 	// - failure handler is called
 	// - error about ctx missing token is added to the failure handler ctx
-	googleHandler := googleHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	googleHandler := googleHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	googleHandler.ServeHTTP(context.Background(), w, req)
@@ -91,7 +91,7 @@ func TestGoogleHandler_ErrorGettingUser(t *testing.T) {
 	// GoogleHandler cannot get Google User, assert that:
 	// - failure handler is called
 	// - error cannot get Google User added to the failure handler ctx
-	googleHandler := googleHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	googleHandler := googleHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	googleHandler.ServeHTTP(ctx, w, req)

@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
+	"github.com/quasor/gologin/testutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -39,7 +39,7 @@ func TestFacebookHandler(t *testing.T) {
 	// - facebook User is obtained from the facebook API
 	// - success handler is called
 	// - facebook User is added to the ctx of the success handler
-	facebookHandler := facebookHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	facebookHandler := facebookHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	facebookHandler.ServeHTTP(ctx, w, req)
@@ -60,7 +60,7 @@ func TestFacebookHandler_MissingCtxToken(t *testing.T) {
 	// FacebookHandler called without Token in ctx, assert that:
 	// - failure handler is called
 	// - error about ctx missing token is added to the failure handler ctx
-	facebookHandler := facebookHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	facebookHandler := facebookHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	facebookHandler.ServeHTTP(context.Background(), w, req)
@@ -88,7 +88,7 @@ func TestFacebookHandler_ErrorGettingUser(t *testing.T) {
 	// FacebookHandler cannot get Facebook User, assert that:
 	// - failure handler is called
 	// - error cannot get Facebook User added to the failure handler ctx
-	facebookHandler := facebookHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	facebookHandler := facebookHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	facebookHandler.ServeHTTP(ctx, w, req)

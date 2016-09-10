@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	"github.com/quasor/gologin/testutils"
 	"github.com/dghubble/oauth1"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -46,7 +46,7 @@ func TestLoginHandler(t *testing.T) {
 	// - request token added to the ctx of the success handler
 	// - request secret added to the ctx of the success handler
 	// - failure handler is not called
-	loginHandler := LoginHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	loginHandler := LoginHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	loginHandler.ServeHTTP(context.Background(), w, req)
@@ -75,7 +75,7 @@ func TestLoginHandler_RequestTokenError(t *testing.T) {
 	// LoginHandler cannot get the OAuth1 request token, assert that:
 	// - failure handler is called
 	// - error is added to the ctx of the failure handler
-	loginHandler := LoginHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	loginHandler := LoginHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	loginHandler.ServeHTTP(context.Background(), w, req)
@@ -119,7 +119,7 @@ func TestAuthRedirectHandler_MissingCtxRequestToken(t *testing.T) {
 	// CallbackHandler cannot get the request token from the ctx, assert that:
 	// - failure handler is called
 	// - error about missing request token is added to the ctx
-	authRedirectHandler := AuthRedirectHandler(config, ctxh.ContextHandlerFunc(failure))
+	authRedirectHandler := AuthRedirectHandler(config, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	authRedirectHandler.ServeHTTP(context.Background(), w, req)
@@ -144,7 +144,7 @@ func TestAuthRedirectHandler_AuthorizationURL(t *testing.T) {
 	// AuthRedirectHandler cannot construct the AuthorizationURL, assert that:
 	// - failure handler is called
 	// - error about authorization URL is added to the ctx
-	authRedirectHandler := AuthRedirectHandler(config, ctxh.ContextHandlerFunc(failure))
+	authRedirectHandler := AuthRedirectHandler(config, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	ctx := WithRequestToken(context.Background(), requestToken, "")
@@ -182,7 +182,7 @@ func TestCallbackHandler(t *testing.T) {
 	// - success handler is called
 	// - access token and secret added to the ctx of the success handler
 	// - failure handler is not called
-	callbackHandler := CallbackHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	callbackHandler := CallbackHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?oauth_token=any_token&oauth_verifier=any_verifier", nil)
 	ctx := WithRequestToken(context.Background(), "", requestSecret)
@@ -204,7 +204,7 @@ func TestCallbackHandler_ParseAuthorizationCallbackError(t *testing.T) {
 	// CallbackHandler called without oauth_token or oauth_verifier, assert that:
 	// - failure handler is called
 	// - error about missing oauth_token or oauth_verifier is added to the ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?oauth_verifier=", nil)
 	callbackHandler.ServeHTTP(context.Background(), w, req)
@@ -225,7 +225,7 @@ func TestCallbackHandler_MissingCtxRequestSecret(t *testing.T) {
 	// CallbackHandler cannot get the request secret from the ctx, assert that:
 	// - failure handler is called
 	// - error about missing request secret is added to the ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?oauth_token=any_token&oauth_verifier=any_verifier", nil)
 	callbackHandler.ServeHTTP(context.Background(), w, req)
@@ -254,7 +254,7 @@ func TestCallbackHandler_AccessTokenError(t *testing.T) {
 	// CallbackHandler cannot get the OAuth1 access token, assert that:
 	// - failure handler is called
 	// - error about missing oauth_token and oauth_token_secret is added to the ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?oauth_token=any_token&oauth_verifier=any_verifier", nil)
 	ctx := WithRequestToken(context.Background(), "", requestSecret)

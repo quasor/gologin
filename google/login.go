@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	google "google.golang.org/api/oauth2/v2"
@@ -26,20 +26,20 @@ var (
 // state params differently, write a ContextHandler which sets the ctx state,
 // using oauth2 WithState(ctx, state) since it is required by LoginHandler
 // and CallbackHandler.
-func StateHandler(config gologin.CookieConfig, success ctxh.ContextHandler) ctxh.ContextHandler {
+func StateHandler(config gologin.CookieConfig, success goji.Handler) goji.Handler {
 	return oauth2Login.StateHandler(config, success)
 }
 
 // LoginHandler handles Google login requests by reading the state value from
 // the ctx and redirecting requests to the AuthURL with that state value.
-func LoginHandler(config *oauth2.Config, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *oauth2.Config, failure goji.Handler) goji.Handler {
 	return oauth2Login.LoginHandler(config, failure)
 }
 
 // CallbackHandler handles Google redirection URI requests and adds the Google
 // access token and Userinfoplus to the ctx. If authentication succeeds,
 // handling delegates to the success handler, otherwise to the failure handler.
-func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CallbackHandler(config *oauth2.Config, success, failure goji.Handler) goji.Handler {
 	success = googleHandler(config, success, failure)
 	return oauth2Login.CallbackHandler(config, success, failure)
 }
@@ -48,7 +48,7 @@ func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler
 // to get the corresponding Google Userinfoplus. If successful, the user info
 // is added to the ctx and the success handler is called. Otherwise, the
 // failure handler is called.
-func googleHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func googleHandler(config *oauth2.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -76,7 +76,7 @@ func googleHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) 
 		ctx = WithUser(ctx, userInfoPlus)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateResponse returns an error if the given Google Userinfoplus, raw

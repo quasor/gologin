@@ -11,8 +11,8 @@ The page receives OAuth Echo headers which can be posted to a Go server, validat
 
 ### Getting Started
 
-    go get github.com/dghubble/gologin/digits
-    cd $GOPATH/src/github.com/dghubble/gologin/examples/digits
+    go get github.com/quasor/gologin/digits
+    cd $GOPATH/src/github.com/quasor/gologin/examples/digits
     go get .
 
 ## Example App

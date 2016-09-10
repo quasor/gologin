@@ -3,13 +3,13 @@ package gologin
 import (
 	"net/http"
 
-	"github.com/dghubble/ctxh"
+	"goji.io"
 	"golang.org/x/net/context"
 )
 
 // DefaultFailureHandler responds with a 400 status code and message parsed
 // from the ctx.
-var DefaultFailureHandler = ctxh.ContextHandlerFunc(failureHandler)
+var DefaultFailureHandler = goji.HandlerFunc(failureHandler)
 
 func failureHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	err := ErrorFromContext(ctx)

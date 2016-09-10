@@ -1,5 +1,5 @@
 
-# gologin [![Build Status](https://travis-ci.org/dghubble/gologin.svg?branch=master)](https://travis-ci.org/dghubble/gologin) [![GoDoc](https://godoc.org/github.com/dghubble/gologin?status.png)](https://godoc.org/github.com/dghubble/gologin)
+# gologin [![Build Status](https://travis-ci.org/dghubble/gologin.svg?branch=master)](https://travis-ci.org/dghubble/gologin) [![GoDoc](https://godoc.org/github.com/quasor/gologin?status.png)](https://godoc.org/github.com/quasor/gologin)
 <img align="right" src="https://storage.googleapis.com/dghubble/gologin.png">
 
 Package `gologin` provides chainable login handlers for Google, Github, Twitter, Digits, Facebook, Bitbucket, Tumblr, OAuth1, OAuth2, and other authentication providers.
@@ -12,15 +12,15 @@ See [examples](examples) for tutorials with apps you can run from the command li
 
 ### Packages
 
-* Google - [docs](http://godoc.org/github.com/dghubble/gologin/google) &#183; [tutorial](examples/google)
-* Github - [docs](http://godoc.org/github.com/dghubble/gologin/github) &#183; [tutorial](examples/github)
-* Facebook - [docs](http://godoc.org/github.com/dghubble/gologin/facebook) &#183; [tutorial](examples/facebook)
-* Twitter - [docs](http://godoc.org/github.com/dghubble/gologin/twitter) &#183; [tutorial](examples/twitter)
-* Digits - [docs](http://godoc.org/github.com/dghubble/gologin/digits) &#183; [tutorial](examples/digits)
-* Bitbucket [docs](http://godoc.org/github.com/dghubble/gologin/bitbucket)
-* Tumblr - [docs](http://godoc.org/github.com/dghubble/gologin/tumblr)
-* OAuth2 - [docs](http://godoc.org/github.com/dghubble/gologin/oauth2)
-* OAuth1 - [docs](http://godoc.org/github.com/dghubble/gologin/oauth1)
+* Google - [docs](http://godoc.org/github.com/quasor/gologin/google) &#183; [tutorial](examples/google)
+* Github - [docs](http://godoc.org/github.com/quasor/gologin/github) &#183; [tutorial](examples/github)
+* Facebook - [docs](http://godoc.org/github.com/quasor/gologin/facebook) &#183; [tutorial](examples/facebook)
+* Twitter - [docs](http://godoc.org/github.com/quasor/gologin/twitter) &#183; [tutorial](examples/twitter)
+* Digits - [docs](http://godoc.org/github.com/quasor/gologin/digits) &#183; [tutorial](examples/digits)
+* Bitbucket [docs](http://godoc.org/github.com/quasor/gologin/bitbucket)
+* Tumblr - [docs](http://godoc.org/github.com/quasor/gologin/tumblr)
+* OAuth2 - [docs](http://godoc.org/github.com/quasor/gologin/oauth2)
+* OAuth1 - [docs](http://godoc.org/github.com/quasor/gologin/oauth1)
 
 ## Features
 
@@ -38,11 +38,11 @@ See [examples](examples) for tutorials with apps you can run from the command li
 
 ## Install
 
-    go get github.com/dghubble/gologin
+    go get github.com/quasor/gologin
 
 ## Docs
 
-Read [GoDoc](https://godoc.org/github.com/dghubble/gologin)
+Read [GoDoc](https://godoc.org/github.com/quasor/gologin)
 
 ## Goals
 
@@ -102,13 +102,13 @@ The `github` `CallbackHandler` receives an auth code and state OAuth2 redirectio
 Next, write the success `ContextHandler` to do something with the Token and Github User added to the `ctx`.
 
 ```go
-func issueSession() ctxh.ContextHandler {
+func issueSession() goji.Handler {
     fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
         token, _ := oauth2Login.TokenFromContext(ctx)
         githubUser, err := github.UserFromContext(ctx)
         // handle errors and grant the visitor a session (cookie, token, etc.)
     }
-    return ctxh.ContextHandlerFunc(fn)
+    return goji.HandlerFunc(fn)
 }
 ```
 
@@ -139,13 +139,13 @@ The `twitter` `CallbackHandler` receives an OAuth1 token and verifier, reads the
 Next, write the success `ContextHandler` to do something with the access token/secret and Twitter User added to the `ctx`.
 
 ```go
-func success() ctxh.ContextHandler {
+func success() goji.Handler {
     fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
         accessToken, accessSecret, _ := oauth1Login.AccessTokenFromContext(ctx)
         twitterUser, err := twitter.UserFromContext(ctx)
         // handle errors and grant the visitor a session (cookie, token, etc.)
     }
-    return ctxh.ContextHandlerFunc(fn)
+    return goji.HandlerFunc(fn)
 }
 ```
 
@@ -157,7 +157,7 @@ See the [Twitter tutorial](examples/twitter) for a web app you can run from the 
 
 OAuth2 `StateHandler` implements OAuth 2 [RFC 6749](https://tools.ietf.org/html/rfc6749) 10.12 CSRF Protection using non-guessable values in short-lived HTTPS-only cookies to provide reasonable assurance the user in the login phase and callback phase are the same. If you wish to implement this differently, write a `ContextHandler` which sets a *state* in the ctx, which is expected by LoginHandler and CallbackHandler.
 
-You may use `oauth2.WithState(context.Context, state string)` for this. [docs](https://godoc.org/github.com/dghubble/gologin/oauth2#WithState)
+You may use `oauth2.WithState(context.Context, state string)` for this. [docs](https://godoc.org/github.com/quasor/gologin/oauth2#WithState)
 
 ### Failure Handlers
 

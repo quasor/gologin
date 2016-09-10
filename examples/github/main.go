@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/github"
+	"goji.io"
+	"github.com/quasor/gologin"
+	"github.com/quasor/gologin/github"
 	"github.com/dghubble/sessions"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -53,7 +53,7 @@ func New(config *Config) *http.ServeMux {
 }
 
 // issueSession issues a cookie session after successful Github login
-func issueSession() ctxh.ContextHandler {
+func issueSession() goji.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 		githubUser, err := github.UserFromContext(ctx)
 		if err != nil {
@@ -66,7 +66,7 @@ func issueSession() ctxh.ContextHandler {
 		session.Save(w)
 		http.Redirect(w, req, "/profile", http.StatusFound)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // welcomeHandler shows a welcome message and login button.

@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/dghubble/ctxh"
+	"goji.io"
 	"github.com/dghubble/go-digits/digits"
-	"github.com/dghubble/gologin"
+	"github.com/quasor/gologin"
 	"github.com/dghubble/sling"
 	"golang.org/x/net/context"
 )
@@ -41,7 +41,7 @@ type Config struct {
 // validates the echo, and calls the endpoint to get the corresponding Digits
 // Account. If successful, the Digits Account is added to the ctx and the
 // success handler is called. Otherwise, the failure handler is called.
-func LoginHandler(config *Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *Config, success, failure goji.Handler) goji.Handler {
 	success = getAccountViaEcho(config, success, failure)
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
@@ -65,14 +65,14 @@ func LoginHandler(config *Config, success, failure ctxh.ContextHandler) ctxh.Con
 		ctx = WithEcho(ctx, accountEndpoint, accountRequestHeader)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // getAccountViaEcho is a ContextHandler that gets the Digits Echo endpoint and
 // OAuth header from the ctx and calls the endpoint to get the corresponding
 // Digits Account. If successful, the Account is added to the ctx and the
 // success handler is called. Otherwise, the failure handler is called.
-func getAccountViaEcho(config *Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func getAccountViaEcho(config *Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -99,7 +99,7 @@ func getAccountViaEcho(config *Config, success, failure ctxh.ContextHandler) ctx
 		ctx = WithAccount(ctx, account)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateEcho checks that the Digits OAuth Echo arguments are valid. If the

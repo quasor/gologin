@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth1Login "github.com/dghubble/gologin/oauth1"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth1Login "github.com/quasor/gologin/oauth1"
 	"github.com/dghubble/oauth1"
 	"golang.org/x/net/context"
 )
@@ -26,7 +26,7 @@ var (
 // verify_credentials to get the corresponding User. If successful, the access
 // token/secret and User are added to the ctx and the success handler is
 // called. Otherwise, the failure handler is called.
-func TokenHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func TokenHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	success = twitterHandler(config, success, failure)
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
@@ -49,7 +49,7 @@ func TokenHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) c
 		ctx = oauth1Login.WithAccessToken(ctx, accessToken, accessSecret)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateToken returns an error if the token or token secret is missing.

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin/twitter"
+	"goji.io"
+	"github.com/quasor/gologin/twitter"
 	"github.com/dghubble/oauth1"
 	twitterOAuth1 "github.com/dghubble/oauth1/twitter"
 	"github.com/dghubble/sessions"
@@ -51,7 +51,7 @@ func New(config *Config) *http.ServeMux {
 }
 
 // issueSession issues a cookie session after successful Twitter login
-func issueSession() ctxh.ContextHandler {
+func issueSession() goji.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 		twitterUser, err := twitter.UserFromContext(ctx)
 		if err != nil {
@@ -64,7 +64,7 @@ func issueSession() ctxh.ContextHandler {
 		session.Save(w)
 		http.Redirect(w, req, "/profile", http.StatusFound)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // welcomeHandler shows a welcome message and login button.

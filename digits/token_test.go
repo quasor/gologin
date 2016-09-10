@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	oauth1Login "github.com/dghubble/gologin/oauth1"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	oauth1Login "github.com/quasor/gologin/oauth1"
+	"github.com/quasor/gologin/testutils"
 	"github.com/dghubble/oauth1"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -47,7 +47,7 @@ func TestTokenHandler(t *testing.T) {
 		assert.Equal(t, testDigitsToken, accessToken)
 		assert.Equal(t, testDigitsSecret, accessSecret)
 	}
-	handler := TokenHandler(config, ctxh.ContextHandlerFunc(success), testutils.AssertFailureNotCalled(t))
+	handler := TokenHandler(config, goji.HandlerFunc(success), testutils.AssertFailureNotCalled(t))
 	ts := httptest.NewServer(ctxh.NewHandlerWithContext(ctx, handler))
 	// POST Digits access token to server under test
 	resp, err := http.PostForm(ts.URL, url.Values{accessTokenField: {testDigitsToken}, accessTokenSecretField: {testDigitsSecret}})

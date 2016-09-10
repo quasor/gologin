@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dghubble/gologin"
+	"github.com/quasor/gologin"
 )
 
 // NewCookie returns a new http.Cookie with the given value and CookieConfig

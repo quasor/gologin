@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
+	"goji.io"
 	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/gologin"
-	oauth1Login "github.com/dghubble/gologin/oauth1"
+	"github.com/quasor/gologin"
+	oauth1Login "github.com/quasor/gologin/oauth1"
 	"github.com/dghubble/oauth1"
 	"golang.org/x/net/context"
 )
@@ -19,7 +19,7 @@ var (
 
 // LoginHandler handles Twitter login requests by obtaining a request token and
 // redirecting to the authorization URL.
-func LoginHandler(config *oauth1.Config, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *oauth1.Config, failure goji.Handler) goji.Handler {
 	// oauth1.LoginHandler -> oauth1.AuthRedirectHandler
 	success := oauth1Login.AuthRedirectHandler(config, failure)
 	return oauth1Login.LoginHandler(config, success, failure)
@@ -29,7 +29,7 @@ func LoginHandler(config *oauth1.Config, failure ctxh.ContextHandler) ctxh.Conte
 // and verifier and adding the Twitter access token and User to the ctx. If
 // authentication succeeds, handling delegates to the success handler,
 // otherwise to the failure handler.
-func CallbackHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CallbackHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	// oauth1.EmptyTempHandler -> oauth1.CallbackHandler -> TwitterHandler -> success
 	success = twitterHandler(config, success, failure)
 	success = oauth1Login.CallbackHandler(config, success, failure)
@@ -40,7 +40,7 @@ func CallbackHandler(config *oauth1.Config, success, failure ctxh.ContextHandler
 // the ctx and calls Twitter verify_credentials to get the corresponding User.
 // If successful, the User is added to the ctx and the success handler is
 // called. Otherwise, the failure handler is called.
-func twitterHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func twitterHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -68,7 +68,7 @@ func twitterHandler(config *oauth1.Config, success, failure ctxh.ContextHandler)
 		ctx = WithUser(ctx, user)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateResponse returns an error if the given Twitter user, raw

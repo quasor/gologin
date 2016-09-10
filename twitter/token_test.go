@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth1Login "github.com/dghubble/gologin/oauth1"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth1Login "github.com/quasor/gologin/oauth1"
+	"github.com/quasor/gologin/testutils"
 	"github.com/dghubble/oauth1"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -41,7 +41,7 @@ func TestTokenHandler(t *testing.T) {
 		assert.Equal(t, expectedUserID, user.ID)
 		assert.Equal(t, "1234", user.IDStr)
 	}
-	handler := TokenHandler(config, ctxh.ContextHandlerFunc(success), testutils.AssertFailureNotCalled(t))
+	handler := TokenHandler(config, goji.HandlerFunc(success), testutils.AssertFailureNotCalled(t))
 	ts := httptest.NewServer(ctxh.NewHandlerWithContext(ctx, handler))
 	// POST token to server under test
 	resp, err := http.PostForm(ts.URL, url.Values{accessTokenField: {testTwitterToken}, accessTokenSecretField: {testTwitterTokenSecret}})
@@ -79,7 +79,7 @@ func TestTokenHandler_ErrorVerifyingTokenPassesError(t *testing.T) {
 			assert.Equal(t, err, ErrUnableToGetTwitterUser)
 		}
 	}
-	handler := TokenHandler(config, testutils.AssertSuccessNotCalled(t), ctxh.ContextHandlerFunc(failure))
+	handler := TokenHandler(config, testutils.AssertSuccessNotCalled(t), goji.HandlerFunc(failure))
 	ts := httptest.NewServer(ctxh.NewHandlerWithContext(ctx, handler))
 	http.PostForm(ts.URL, url.Values{accessTokenField: {testTwitterToken}, accessTokenSecretField: {testTwitterTokenSecret}})
 }
@@ -105,7 +105,7 @@ func TestTokenHandler_NonPostPassesError(t *testing.T) {
 			assert.Equal(t, err, fmt.Errorf("Method not allowed"))
 		}
 	}
-	ts := httptest.NewServer(ctxh.NewHandler(TokenHandler(config, testutils.AssertSuccessNotCalled(t), ctxh.ContextHandlerFunc(failure))))
+	ts := httptest.NewServer(ctxh.NewHandler(TokenHandler(config, testutils.AssertSuccessNotCalled(t), goji.HandlerFunc(failure))))
 	http.Get(ts.URL)
 }
 

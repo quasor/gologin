@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
+	"goji.io"
 	"github.com/dghubble/go-digits/digits"
-	"github.com/dghubble/gologin"
-	oauth1Login "github.com/dghubble/gologin/oauth1"
+	"github.com/quasor/gologin"
+	oauth1Login "github.com/quasor/gologin/oauth1"
 	"github.com/dghubble/oauth1"
 	"golang.org/x/net/context"
 )
@@ -27,7 +27,7 @@ var (
 // accounts endpoint to get the corresponding Account. If successful, the
 // access token/secret and Account are added to the ctx and the success handler
 // is called. Otherwise, the failure handler is called.
-func TokenHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func TokenHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	success = digitsHandler(config, success, failure)
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
@@ -50,14 +50,14 @@ func TokenHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) c
 		ctx = oauth1Login.WithAccessToken(ctx, accessToken, accessSecret)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // digitsHandler is a ContextHandler that gets the OAuth1 access token from the
 // ctx and calls the Digits accounts endpoint to get the corresponding Account.
 // If successful, the Account is added to the ctx and the success handler is
 // called. Otherwise, the failure handler is called.
-func digitsHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func digitsHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -80,7 +80,7 @@ func digitsHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) 
 		ctx = WithAccount(ctx, account)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateToken returns an error if the token or token secret is missing.

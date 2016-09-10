@@ -3,9 +3,9 @@ package oauth1
 import (
 	"net/http"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/internal"
+	"goji.io"
+	"github.com/quasor/gologin"
+	"github.com/quasor/gologin/internal"
 	"github.com/dghubble/oauth1"
 	"golang.org/x/net/context"
 )
@@ -16,7 +16,7 @@ import (
 //
 // Typically, the success handler is an AuthRedirectHandler or a handler which
 // stores the request token secret.
-func LoginHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -30,12 +30,12 @@ func LoginHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) c
 		ctx = WithRequestToken(ctx, requestToken, requestSecret)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // AuthRedirectHandler reads the request token from the ctx and redirects
 // to the authorization URL.
-func AuthRedirectHandler(config *oauth1.Config, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func AuthRedirectHandler(config *oauth1.Config, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -54,7 +54,7 @@ func AuthRedirectHandler(config *oauth1.Config, failure ctxh.ContextHandler) ctx
 		}
 		http.Redirect(w, req, authorizationURL.String(), http.StatusFound)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // CookieTempHandler persists or retrieves the request token secret (temporary
@@ -68,7 +68,7 @@ func AuthRedirectHandler(config *oauth1.Config, failure ctxh.ContextHandler) ctx
 // Some OAuth1 providers (Twitter, Digits) do NOT require temp secrets to be
 // kept between the login phase and callback phase. To implement those
 // providers, use the EmptyTempHandler instead.
-func CookieTempHandler(config gologin.CookieConfig, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CookieTempHandler(config gologin.CookieConfig, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -90,13 +90,13 @@ func CookieTempHandler(config gologin.CookieConfig, success, failure ctxh.Contex
 		ctx = WithRequestToken(ctx, "", cookie.Value)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // EmptyTempHandler adds an empty request token secret to the ctx if none is
 // present to support OAuth1 providers which do not require temp secrets to
 // be kept between the login phase and callback phase.
-func EmptyTempHandler(success ctxh.ContextHandler) ctxh.ContextHandler {
+func EmptyTempHandler(success goji.Handler) goji.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 		_, _, err := RequestTokenFromContext(ctx)
 		if err != nil {
@@ -104,13 +104,13 @@ func EmptyTempHandler(success ctxh.ContextHandler) ctxh.ContextHandler {
 		}
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // CallbackHandler handles OAuth1 callback requests by parsing the oauth token
 // and verifier, reading the request token secret from the ctx, then obtaining
 // an access token and adding it to the ctx.
-func CallbackHandler(config *oauth1.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CallbackHandler(config *oauth1.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -139,5 +139,5 @@ func CallbackHandler(config *oauth1.Config, success, failure ctxh.ContextHandler
 		ctx = WithAccessToken(ctx, accessToken, accessSecret)
 		success.ServeHTTP(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }

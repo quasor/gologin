@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/testutils"
+	"goji.io"
+	"github.com/quasor/gologin"
+	"github.com/quasor/gologin/testutils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -56,7 +56,7 @@ func TestLoginHandler_MissingCtxState(t *testing.T) {
 	// LoginHandler cannot get the state from the ctx, assert that:
 	// - failure handler is called
 	// - error about missing state is added to the ctx
-	loginHandler := LoginHandler(config, ctxh.ContextHandlerFunc(failure))
+	loginHandler := LoginHandler(config, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	loginHandler.ServeHTTP(context.Background(), w, req)
@@ -100,7 +100,7 @@ func TestCallbackHandler(t *testing.T) {
 	// - success handler is called
 	// - access token added to the ctx of the success handler
 	// - failure handler is not called
-	callbackHandler := CallbackHandler(config, ctxh.ContextHandlerFunc(success), failure)
+	callbackHandler := CallbackHandler(config, goji.HandlerFunc(success), failure)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?code=any_code&state=d4e5f6", nil)
 	ctx := WithState(context.Background(), "d4e5f6")
@@ -122,7 +122,7 @@ func TestCallbackHandler_ParseCallbackError(t *testing.T) {
 	// CallbackHandler called without code or state, assert that:
 	// - failure handler is called
 	// - error about missing code or state is added to the ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?code=any_code", nil)
 	callbackHandler.ServeHTTP(context.Background(), w, req)
@@ -148,7 +148,7 @@ func TestCallbackHandler_MissingCtxState(t *testing.T) {
 	// CallbackHandler called without state param in ctx, assert that:
 	// - failure handler is called
 	// - error about ctx missing state is added to the failure handler ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?code=any_code&state=d4e5f6", nil)
 	callbackHandler.ServeHTTP(context.Background(), w, req)
@@ -169,7 +169,7 @@ func TestCallbackHandler_StateMismatch(t *testing.T) {
 	// CallbackHandler ctx state does not match state param, assert that:
 	// - failure handler is called
 	// - error about invalid state param is added to the failure handler ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?code=any_code&state=d4e5f6", nil)
 	ctx := WithState(context.Background(), "differentState")
@@ -199,7 +199,7 @@ func TestCallbackHandler_ExchangeError(t *testing.T) {
 	// CallbackHandler cannot exchange for an Access Token, assert that:
 	// - failure handler is called
 	// - error with the reason the exchange failed is added to the ctx
-	callbackHandler := CallbackHandler(config, success, ctxh.ContextHandlerFunc(failure))
+	callbackHandler := CallbackHandler(config, success, goji.HandlerFunc(failure))
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/?code=any_code&state=d4e5f6", nil)
 	ctx := WithState(context.Background(), "d4e5f6")

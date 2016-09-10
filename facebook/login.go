@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	oauth2Login "github.com/dghubble/gologin/oauth2"
+	"goji.io"
+	"github.com/quasor/gologin"
+	oauth2Login "github.com/quasor/gologin/oauth2"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -24,13 +24,13 @@ var (
 // state params differently, write a ContextHandler which sets the ctx state,
 // using oauth2 WithState(ctx, state) since it is required by LoginHandler
 // and CallbackHandler.
-func StateHandler(config gologin.CookieConfig, success ctxh.ContextHandler) ctxh.ContextHandler {
+func StateHandler(config gologin.CookieConfig, success goji.Handler) goji.Handler {
 	return oauth2Login.StateHandler(config, success)
 }
 
 // LoginHandler handles Facebook login requests by reading the state value
 // from the ctx and redirecting requests to the AuthURL with that state value.
-func LoginHandler(config *oauth2.Config, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *oauth2.Config, failure goji.Handler) goji.Handler {
 	return oauth2Login.LoginHandler(config, failure)
 }
 
@@ -38,7 +38,7 @@ func LoginHandler(config *oauth2.Config, failure ctxh.ContextHandler) ctxh.Conte
 // Facebook access token and User to the ctx. If authentication succeeds,
 // handling delegates to the success handler, otherwise to the failure
 // handler.
-func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CallbackHandler(config *oauth2.Config, success, failure goji.Handler) goji.Handler {
 	success = facebookHandler(config, success, failure)
 	return oauth2Login.CallbackHandler(config, success, failure)
 }
@@ -47,7 +47,7 @@ func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler
 // to get the corresponding Facebook User. If successful, the user is added to
 // the ctx and the success handler is called. Otherwise, the failure handler
 // is called.
-func facebookHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func facebookHandler(config *oauth2.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -55,7 +55,7 @@ func facebookHandler(config *oauth2.Config, success, failure ctxh.ContextHandler
 		token, err := oauth2Login.TokenFromContext(ctx)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		httpClient := config.Client(ctx, token)
@@ -64,13 +64,13 @@ func facebookHandler(config *oauth2.Config, success, failure ctxh.ContextHandler
 		err = validateResponse(user, resp, err)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		ctx = WithUser(ctx, user)
-		success.ServeHTTP(ctx, w, req)
+		success.ServeHTTPC(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // validateResponse returns an error if the given Facebook User, raw

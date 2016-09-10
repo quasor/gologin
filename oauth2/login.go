@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/dghubble/ctxh"
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/internal"
+	"goji.io"
+	"github.com/quasor/gologin"
+	"github.com/quasor/gologin/internal"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
@@ -26,7 +26,7 @@ var (
 // state params differently, write a ContextHandler which sets the ctx state,
 // using oauth2 WithState(ctx, state) since it is required by LoginHandler
 // and CallbackHandler.
-func StateHandler(config gologin.CookieConfig, success ctxh.ContextHandler) ctxh.ContextHandler {
+func StateHandler(config gologin.CookieConfig, success goji.Handler) goji.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 		cookie, err := req.Cookie(config.Name)
 		if err == nil {
@@ -38,14 +38,14 @@ func StateHandler(config gologin.CookieConfig, success ctxh.ContextHandler) ctxh
 			http.SetCookie(w, internal.NewCookie(config, val))
 			ctx = WithState(ctx, val)
 		}
-		success.ServeHTTP(ctx, w, req)
+		success.ServeHTTPC(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // LoginHandler handles OAuth2 login requests by reading the state value from
 // the ctx and redirecting requests to the AuthURL with that state value.
-func LoginHandler(config *oauth2.Config, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func LoginHandler(config *oauth2.Config, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -53,19 +53,19 @@ func LoginHandler(config *oauth2.Config, failure ctxh.ContextHandler) ctxh.Conte
 		state, err := StateFromContext(ctx)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		authURL := config.AuthCodeURL(state)
 		http.Redirect(w, req, authURL, http.StatusFound)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // CallbackHandler handles OAuth2 redirection URI requests by parsing the auth
 // code and state, comparing with the state value from the ctx, and obtaining
 // an OAuth2 Token.
-func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler) ctxh.ContextHandler {
+func CallbackHandler(config *oauth2.Config, success, failure goji.Handler) goji.Handler {
 	if failure == nil {
 		failure = gologin.DefaultFailureHandler
 	}
@@ -73,31 +73,31 @@ func CallbackHandler(config *oauth2.Config, success, failure ctxh.ContextHandler
 		authCode, state, err := parseCallback(req)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		ownerState, err := StateFromContext(ctx)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		if state != ownerState || state == "" {
 			ctx = gologin.WithError(ctx, ErrInvalidState)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		// use the authorization code to get a Token
 		token, err := config.Exchange(ctx, authCode)
 		if err != nil {
 			ctx = gologin.WithError(ctx, err)
-			failure.ServeHTTP(ctx, w, req)
+			failure.ServeHTTPC(ctx, w, req)
 			return
 		}
 		ctx = WithToken(ctx, token)
-		success.ServeHTTP(ctx, w, req)
+		success.ServeHTTPC(ctx, w, req)
 	}
-	return ctxh.ContextHandlerFunc(fn)
+	return goji.HandlerFunc(fn)
 }
 
 // Returns a base64 encoded random 32 byte string.
